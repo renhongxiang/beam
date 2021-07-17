@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings({
   "nullness" // TODO(https://issues.apache.org/jira/browse/BEAM-10402)
 })
-class KafkaUnboundedSource<K, V> extends UnboundedSource<KafkaRecord<K, V>, KafkaCheckpointMark> {
+public class KafkaUnboundedSource<K, V> extends UnboundedSource<KafkaRecord<K, V>, KafkaCheckpointMark> {
 
   /**
    * The partitions are evenly distributed among the splits. The number of splits returned is {@code
@@ -56,7 +56,7 @@ class KafkaUnboundedSource<K, V> extends UnboundedSource<KafkaRecord<K, V>, Kafk
   @Override
   public List<KafkaUnboundedSource<K, V>> split(int desiredNumSplits, PipelineOptions options)
       throws Exception {
-
+      
     List<TopicPartition> partitions = new ArrayList<>(spec.getTopicPartitions());
 
     // (a) fetch partitions for each topic
@@ -112,8 +112,7 @@ class KafkaUnboundedSource<K, V> extends UnboundedSource<KafkaRecord<K, V>, Kafk
           assignedToSplit.size(),
           Joiner.on(",").join(assignedToSplit));
 
-      result.add(
-          new KafkaUnboundedSource<>(
+      result.add( this.createNewSource(
               spec.toBuilder()
                   .setTopics(Collections.emptyList())
                   .setTopicPartitions(assignedToSplit)
@@ -124,6 +123,11 @@ class KafkaUnboundedSource<K, V> extends UnboundedSource<KafkaRecord<K, V>, Kafk
     return result;
   }
 
+  protected KafkaUnboundedSource<K,V> createNewSource(Read<K, V> spec, int id){
+      KafkaUnboundedSourceFacture fact = KafkaUnboundedSourceFacture.getInstance();
+      return fact.createSource(spec, id);
+  }
+  
   @Override
   public KafkaUnboundedReader<K, V> createReader(
       PipelineOptions options, KafkaCheckpointMark checkpointMark) {

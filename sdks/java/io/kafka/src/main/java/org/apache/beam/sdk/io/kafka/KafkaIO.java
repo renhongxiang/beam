@@ -1484,7 +1484,11 @@ public class KafkaIO {
      */
     @VisibleForTesting
     UnboundedSource<KafkaRecord<K, V>, KafkaCheckpointMark> makeSource() {
-      return new KafkaUnboundedSource<>(this, -1);
+        KafkaUnboundedSourceFacture fact = KafkaUnboundedSourceFacture.getInstance();
+        if(fact != null){
+            return fact.createSource(this, -1);
+        }
+        return null;
     }
 
     // utility method to convert KafkaRecord<K, V> to user KV<K, V> before applying user functions
